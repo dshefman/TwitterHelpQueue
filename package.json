@@ -8,6 +8,6 @@
   "dependencies": {
     "express": "3.0.0rc1",
     "jade": "*",
-    "ntwitter": "*"
+    "ntwitter": "https://github.com/dshefman/ntwitter.git"
   }
 }
