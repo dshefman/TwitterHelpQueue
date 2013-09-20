@@ -7,8 +7,8 @@ html
     body
         h1	COMM3323 Help Queue
         form(action='/postTweet', method='post')
-              input.field(name='firstName', value='firstName')
-              input.field(name='lastName', value='lastName')
+              input.field(id='firstName' name='firstName', value='firstName')
+              input.field(id='lastName' name='lastName', value='lastName')
               input.send(type='button', id="send", value='I need help')
         ol
          each tweet in tweets
