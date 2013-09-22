@@ -11,7 +11,8 @@
  , http = require('http')
  , path = require('path')
  , twitter = require('ntwitter')
- , url = require('url');
+ , url = require('url')
+ , socketio = require('socket.io');
 
  var app = express();
 
@@ -47,6 +48,20 @@
     * This demonstrates a use case where the Application itself is making all of the API calls on its
     * own behalf.
     */
+  var parseData = function(tweet){
+      var now = new Date();
+      var tweetTime = new Date(tweet.created_at);
+      var minsAgo = Math.round((now.getTime() - tweetTime.getTime()) / 1000 / 60);
+      var endidx = tweet.text.indexOf('needs help. #uhmultimediaHelp @UHMultimedia');
+      var coreTweet = tweet.text;
+      if (endidx != -1) {
+          coreTweet = tweet.text.substring(0,endidx);
+      }
+      console.log(tweet.text +" >>> " + minsAgo + " mins ago");
+      return {text:coreTweet, minsAgo:minsAgo}
+  };
+
+var searchTerm = "uhmultimediaHelp";
 
     app.get('/', function(req, res){
       console.log("Entering Single User Example...");
@@ -60,35 +75,29 @@
 
 
    twit
-       .search("uhmultimediaHelp",{},
+       .search(searchTerm,{},
        function (err, data) {
            if(err){
                console.log("Verification failed : " + err);
            }
            console.log("Search Data Returned....");
-           var queueList = "";
            var tweets = data.statuses;
            var tweet;
            var len = tweets.length;
-           var displayTweets = []
-           var now = new Date();
+           var displayTweets = [];
            for  (var i =0 ; i<len; i++){
                tweet = tweets[i];
-                var tweetTime = new Date(tweet.created_at);
-                var minsAgo = Math.round((now.getTime() - tweetTime.getTime()) / 1000 / 60);
-                var endidx = tweet.text.indexOf('needs help. #uhmultimediaHelp @UHMultimedia')
-               var coreTweet = tweet.text;
-               if (endidx != -1) {
-                    coreTweet = tweet.text.substring(0,endidx);
-                }
-                displayTweets.push({text:coreTweet, minsAgo:minsAgo});
-                console.log(tweet.text +" >>> " + minsAgo + " mins ago");
+                parsedTweet = parseData(tweet);
+               if (parsedTweet.minsAgo < 300)
+               {
+                displayTweets.push(parseData(tweet));
+               }
                  //queueList += "<li>" +  tweet.text +"..."+ tweet.created_at +"</li>"
            }
 
            var view_data = {
                "tweets" : displayTweets
-           }
+           };
 
            console.log("Exiting Controller.");
            res.render("single", view_data);
@@ -104,20 +113,47 @@ app.post("/postTweet", function(req,res){
     tweet += "@UHMultimedia ";
 
     var uniqueifer = new Date().getTime();
-    tweet += uniqueifer
+    tweet += uniqueifer;
 
     twit.updateStatus(tweet, function(err,data){
         if (err) {console.log("Error:" + err);}
         else {console.log("Tweeted: " + JSON.stringify(data));}
-    })
+    });
     console.log("debug tweet: " +tweet);
     res.contentType('application/json');
     var data = JSON.stringify("/");
     res.header('Content-length',data.length);
     res.end(data);
-})
+});
 
-http.createServer(app).listen(app.get('port'), function(){
+/*http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
+});*/
+var server = app.listen(app.get('port'), function(){
+    console.log("Express server listening on port " + app.get('port'));
+});
+
+var io = require('socket.io').listen(server);
+
+
+//app.listen(8080)
+
+io.sockets.on('connection', function(socket) {
+    console.log('Connected to the server');
+    socket.on('filters', function(msg){
+        console.log('Received message :'+msg);
+        twit.stream('statuses/filter', {'track':searchTerm},
+            function(stream) {
+                stream.on('data',function(data){
+                    console.log(">> "+ JSON.stringify(data));
+                    socket.emit('twitter',parseData(data));
+                });
+            });
+    });
+    socket.on('disconnect', function () {
+        console.log('User disconnected');
+        socket.disconnect();
+        io.sockets.emit('user disconnected');
+    });
 });
 

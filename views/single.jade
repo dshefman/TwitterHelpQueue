@@ -3,6 +3,7 @@ html
     head
         title = "I Need Help for Comm3323"
         script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js')
+        script(src="/socket.io/socket.io.js")
         script(src='/uhtwitter.js')
     body
         h1	COMM3323 Help Queue
@@ -10,6 +11,6 @@ html
               input.field(id='firstName' name='firstName', value='firstName')
               input.field(id='lastName' name='lastName', value='lastName')
               input.send(type='button', id="send", value='I need help')
-        ol
+        ol(id='tweetlist')
          each tweet in tweets
           li #{tweet.text} ... #{tweet.minsAgo} mins ago
