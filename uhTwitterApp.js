@@ -52,13 +52,19 @@
       var now = new Date();
       var tweetTime = new Date(tweet.created_at);
       var minsAgo = Math.round((now.getTime() - tweetTime.getTime()) / 1000 / 60);
+      var hour24 = tweetTime.getHours();
+      var hour = (hour24 > 12) ? hour24-12: hour24;
+      if (hour <10) {hour = "0" + hour;}
+      var ampm = (hour24 < 12) ? "am" : "pm";
+      var min = (tweetTime.getMinutes() <10 )? "0" + tweetTime.getMinutes() : tweetTime.getMinutes();
+      var dateF = hour +":"+ min + " " + ampm;
       var endidx = tweet.text.indexOf('needs help. #uhmultimediaHelp @UHMultimedia');
       var coreTweet = tweet.text;
       if (endidx != -1) {
           coreTweet = tweet.text.substring(0,endidx);
       }
-      console.log(tweet.text +" >>> " + minsAgo + " mins ago");
-      return {text:coreTweet, minsAgo:minsAgo}
+      console.log(tweet.text +" >>> " + dateF + " mins ago");
+      return {text:coreTweet, minsAgo:minsAgo, dateF:dateF}
   };
 
 var searchTerm = "uhmultimediaHelp";
@@ -146,7 +152,8 @@ io.sockets.on('connection', function(socket) {
             function(stream) {
                 stream.on('data',function(data){
                     console.log(">> "+ JSON.stringify(data));
-                    socket.emit('twitter',parseData(data));
+                        socket.emit('twitter',parseData(data))
+
                 });
             });
     });

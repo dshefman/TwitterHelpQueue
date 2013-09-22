@@ -20,6 +20,16 @@ $(document).ready(function(){
         socket.emit('filters',"uhmultimediaHelp");
         listen();
     });
+    $("#firstName").keyup(function(event){
+        if(event.keyCode == 13){
+            $("#send").click();
+        }
+    });
+    $("#lastName").keyup(function(event){
+        if(event.keyCode == 13){
+            $("#send").click();
+        }
+    });
 });
 
 function listen(){
@@ -28,7 +38,7 @@ function listen(){
         console.log('Twitter' + JSON.stringify(data));
         //image_url = '<img src="'+data.user.profile_image_url+'" alt="'+data.user.screen_name+'" />';
         var tweet = data;
-        $('ol').prepend("<li>" + tweet.text +"... " + tweet.minsAgo +" mins ago </li>");
+        $('ol').prepend("<li>" + tweet.text +"... " + tweet.dateF +" </li>");
     });
 
 }
