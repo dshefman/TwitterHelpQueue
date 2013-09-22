@@ -9,6 +9,6 @@
     "express": "3.0.0rc1",
     "jade": "*",
     "ntwitter": "git://github.com/dshefman/ntwitter.git",
-    "socketio": "*"
+    "socket.io": "*"
   }
 }
