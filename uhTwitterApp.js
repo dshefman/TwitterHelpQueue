@@ -162,8 +162,6 @@ io.sockets.on('connection', function(socket) {
     });
     socket.on('disconnect', function () {
         console.log('User disconnected');
-        socket.disconnect();
-        io.sockets.emit('user disconnected');
     });
 });
 
