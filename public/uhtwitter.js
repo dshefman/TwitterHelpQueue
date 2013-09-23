@@ -11,7 +11,8 @@ $(document).ready(function(){
               alert("an error occured");
 
           }).success(function(){
-              console.log("successfully posted");
+              console.log("redirect to " +data)
+              window.location = data;
 
           })
       });
