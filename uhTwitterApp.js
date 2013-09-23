@@ -37,6 +37,8 @@
   /**
    * Above this line are Express Defaults.
    */
+createTwitter = function()
+{
   var twit = new twitter({
       consumer_key: '8gBrIpePkV04FhZTxDMGg',
       consumer_secret: 'J6F7rjxtHQbPZbLC8L1j6uZ3K7pT3SguU8SVm3lPar0',
@@ -44,6 +46,10 @@
       access_token_secret: 'xGRgol6UgJRJthG5pQkGvVfRGcDezECfg4bGCS5Vk8s'
   });
 
+return twit
+}
+
+twit = createTwitter();
   /**
     * This demonstrates a use case where the Application itself is making all of the API calls on its
     * own behalf.
@@ -151,9 +157,10 @@ io.configure(function(){
 
 io.sockets.on('connection', function(socket) {
     console.log('Connected to the server');
+    var localTwit = createTwitter();
     socket.on('filters', function(msg){
         console.log('Received message :'+msg);
-        twit.stream('statuses/filter', {'track':searchTerm},
+        localTwit.stream('statuses/filter', {'track':searchTerm},
             function(stream) {
                 stream.on('data',function(data){
                     console.log(">> "+ JSON.stringify(data));
