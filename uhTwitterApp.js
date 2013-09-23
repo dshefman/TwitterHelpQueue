@@ -122,7 +122,7 @@ app.post("/postTweet", function(req,res){
     tweet += uniqueifer;
 
     twit.updateStatus(tweet, function(err,data){
-        if (err) {console.log("Error:" + err);}
+        if (err) {console.log("Error:" + err); }
         else {console.log("Tweeted: " + JSON.stringify(data));}
     });
     console.log("debug tweet: " +tweet);
@@ -152,7 +152,10 @@ io.sockets.on('connection', function(socket) {
             function(stream) {
                 stream.on('data',function(data){
                     console.log(">> "+ JSON.stringify(data));
-                        socket.emit('twitter',parseData(data))
+                        if (data.disconnect == null)
+                        {
+                            socket.emit('twitter',parseData(data))
+                        }
 
                 });
             });
