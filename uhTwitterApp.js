@@ -158,8 +158,8 @@ io.configure(function(){
 io.sockets.on('connection', function(socket) {
     console.log('Connected to the server');
     var localTwit = createTwitter();
-    socket.on('filters', function(msg){
-        console.log('Received message :'+msg);
+    //socket.on('filters', function(msg){
+      //  console.log('Received message :'+msg);
         localTwit.stream('statuses/filter', {'track':searchTerm},
             function(stream) {
                 stream.on('data',function(data){
@@ -171,7 +171,7 @@ io.sockets.on('connection', function(socket) {
 
                 });
             });
-    });
+    //});
     socket.on('disconnect', function () {
         console.log('User disconnected');
     });
