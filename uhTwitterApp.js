@@ -53,6 +53,8 @@
       var tweetTime = new Date(tweet.created_at);
       var minsAgo = Math.round((now.getTime() - tweetTime.getTime()) / 1000 / 60);
       var hour24 = tweetTime.getHours();
+      var currentTimezoneOffset = -5;
+      hour24 = hour24+currentTimezoneOffset;
       var hour = (hour24 > 12) ? hour24-12: hour24;
       if (hour <10) {hour = "0" + hour;}
       var ampm = (hour24 < 12) ? "am" : "pm";
@@ -63,7 +65,7 @@
       if (endidx != -1) {
           coreTweet = tweet.text.substring(0,endidx);
       }
-      console.log(tweet.text +" >>> " + dateF + " mins ago");
+      console.log(tweet.text +" >>> " + dateF );
       return {text:coreTweet, minsAgo:minsAgo, dateF:dateF}
   };
 
