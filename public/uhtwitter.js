@@ -1,4 +1,9 @@
-var socket = io.connect(document.location);
+
+var socket = io.connect('http://uhmultimedia-twitter-092013.heroku.com',{
+    'reconnect': true,
+    'reconnection delay': 500,
+    'max reconnection attempts': 10
+});
 
 $(document).ready(function(){
     console.log("ready");
@@ -7,13 +12,14 @@ $(document).ready(function(){
      jQuery.post("/postTweet", {
           'firstName': $('#firstName').val(),
           'lastName' : $('#lastName').val()},
-          'json').error(function(){
-              alert("an error occured");
+          'json').error(function(err){
+              alert("an error occured. " +JSON.stringify(err));
 
-          }).success(function(){
-              console.log("redirect to " +data)
-              window.location = data;
-
+          }).success(function(data){
+              console.log("adding Data " + JSON.stringify(data));
+              $('ol').prepend("<li>" + tweet.text +"... " + tweet.dateF +" </li>");
+              $('firstName').val("");
+              $('lastName').val("");
           })
       });
     socket.on('connect',function() {
@@ -21,6 +27,10 @@ $(document).ready(function(){
         socket.emit('filters',"uhmultimediaHelp");
         listen();
     });
+    socket.on("help", function(msg){
+        console.log("adding Data " + JSON.stringify(msg));
+        $('ol').prepend("<li>" + msg.text +"... " + msg.dateF +" </li>");
+    })
     $("#firstName").keyup(function(event){
         if(event.keyCode == 13){
             $("#send").click();

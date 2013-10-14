@@ -34,6 +34,8 @@
   app.use(express.errorHandler());
 });
 
+//var script_url = 'http://uhtwitter-daemon.herokuapp.com';
+
   /**
    * Above this line are Express Defaults.
    */
@@ -110,16 +112,48 @@ var searchTerm = "uhmultimediaHelp";
            }
 
            var view_data = {
-               "tweets" : displayTweets
+               "tweets" : displayTweets,
            };
-
+           //res.locals.script_url = script_url;
            console.log("Exiting Controller.");
            res.render("single", view_data);
        });
  });
 
+
+/*http.createServer(app).listen(app.get('port'), function(){
+  console.log("Express server listening on port " + app.get('port'));
+});*/
+var server = app.listen(app.get('port'), function(){
+    console.log("Express server listening on port " + app.get('port'));
+});
+
+
+var io = require('socket.io').listen(server);
+io.configure(function(){
+    io.set("transports",["xhr-polling", 'jsonp-polling']);
+    io.set("polling duration", 10);
+});
+
+
+//app.listen(8080)
+
+
+io.sockets.on('connection', function(socket) {
+    console.log('Connected to the server');
+    socket.on('help', function(msg)
+    {
+        io.sockets.emit('message', msg);
+    })
+    socket.on('disconnect', function () {
+        console.log('User disconnected');
+    });
+});
+
+
+
 app.post("/postTweet", function(req,res){
-     var tweet = "";
+    var tweet = "";
     tweet += req.body.firstName + " ";
     tweet += req.body.lastName + " ";
     tweet += "needs help. ";
@@ -129,51 +163,15 @@ app.post("/postTweet", function(req,res){
     var uniqueifer = new Date().getTime();
     tweet += uniqueifer;
 
+    var parsedTweet = parseData({text:tweet, created_at: new Date()})
     twit.updateStatus(tweet, function(err,data){
         if (err) {console.log("Error:" + err); }
         else {console.log("Tweeted: " + JSON.stringify(data));}
     });
+    io.sockets.emit("help",parsedTweet );
     console.log("debug tweet: " +tweet);
-    res.contentType('application/json');
-    var data = JSON.stringify("/");
-    res.header('Content-length',data.length);
-    res.end(data);
+    //res.contentType('application/json');
+    //var data = tweet;
+    //res.header('Content-length',data.length);
+    //res.end(data);
 });
-
-/*http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
-});*/
-var server = app.listen(app.get('port'), function(){
-    console.log("Express server listening on port " + app.get('port'));
-});
-
-var io = require('socket.io').listen(server);
-io.configure(function(){
-    io.set("transports",["xhr-polling", 'jsonp-polling']);
-    io.set("polling duration", 10);
-});
-
-//app.listen(8080)
-
-io.sockets.on('connection', function(socket) {
-    console.log('Connected to the server');
-    var localTwit = createTwitter();
-    //socket.on('filters', function(msg){
-      //  console.log('Received message :'+msg);
-        localTwit.stream('statuses/filter', {'track':searchTerm},
-            function(stream) {
-                stream.on('data',function(data){
-                    console.log(">> "+ JSON.stringify(data));
-                        if (data.disconnect == null)
-                        {
-                            socket.emit('twitter',parseData(data))
-                        }
-
-                });
-            });
-    //});
-    socket.on('disconnect', function () {
-        console.log('User disconnected');
-    });
-});
-
