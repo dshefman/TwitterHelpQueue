@@ -17,7 +17,7 @@ $(document).ready(function(){
 
           }).success(function(data){
               console.log("adding Data " + JSON.stringify(data));
-              $('ol').prepend("<li>" + tweet.text +"... " + tweet.dateF +" </li>");
+              //$('ol').prepend("<li>" + tweet.text +"... " + tweet.dateF +" </li>");
               $('firstName').val("");
               $('lastName').val("");
           })

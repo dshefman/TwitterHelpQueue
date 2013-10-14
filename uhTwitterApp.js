@@ -171,8 +171,8 @@ app.post("/postTweet", function(req,res){
     });
     io.sockets.emit("help",parsedTweet );
     console.log("debug tweet: " +tweet);
-    //res.contentType('application/json');
-    //var data = tweet;
-    //res.header('Content-length',data.length);
-    //res.end(data);
+    res.contentType('application/json');
+    var data = tweet;
+    res.header('Content-length',data.length);
+    res.end(data);
 });
