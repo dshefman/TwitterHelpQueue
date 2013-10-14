@@ -1,5 +1,5 @@
 
-var socket = io.connect('http://uhmultimedia-twitter-092013.heroku.com',{
+var socket = io.connect(window.location.hostname,{
     'reconnect': true,
     'reconnection delay': 500,
     'max reconnection attempts': 10
@@ -24,7 +24,7 @@ $(document).ready(function(){
       });
     socket.on('connect',function() {
         console.log('Client has connected to the server!');
-        socket.emit('filters',"uhmultimediaHelp");
+        //socket.emit('filters',"uhmultimediaHelp");
         listen();
     });
     socket.on("help", function(msg){

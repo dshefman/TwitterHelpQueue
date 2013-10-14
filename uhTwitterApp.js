@@ -141,6 +141,7 @@ var io = require('socket.io').listen(server);
 
 io.sockets.on('connection', function(socket) {
     console.log('Connected to the server');
+    io.sockets.emit('connect');
     socket.on('help', function(msg)
     {
         io.sockets.emit('message', msg);
