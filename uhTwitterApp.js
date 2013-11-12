@@ -76,7 +76,7 @@ twit = createTwitter();
         a tweet after midnight (0) GMT, should really be +24 so that the math ends up correct
       */
      hour24 = hour24+currentTimezoneOffset;
-     if (hour24 <=0) {hour24+24;}
+     if (hour24 <=0) {hour24+=24;}
      var hour = (hour24 > 12) ? hour24-12: hour24;
      if (hour <10) {hour = "0" + hour;}
      var ampm = (hour24 < 12) ? "am" : "pm";
