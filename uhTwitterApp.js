@@ -61,6 +61,7 @@ twit = createTwitter();
       var tweetTime = new Date(tweet.created_at);
       var minsAgo = Math.round((now.getTime() - tweetTime.getTime()) / 1000 / 60);
       var hour24 = tweetTime.getHours();
+      if (hour24 == "0" || hour24 == 0) {hour24 = 24;}
       var currentTimezoneOffset = -5;
       hour24 = hour24+currentTimezoneOffset;
       var hour = (hour24 > 12) ? hour24-12: hour24;
@@ -112,7 +113,7 @@ var searchTerm = "uhmultimediaHelp";
            }
 
            var view_data = {
-               "tweets" : displayTweets,
+               "tweets" : displayTweets
            };
            //res.locals.script_url = script_url;
            console.log("Exiting Controller.");
@@ -166,8 +167,14 @@ app.post("/postTweet", function(req,res){
 
     var parsedTweet = parseData({text:tweet, created_at: new Date()})
     twit.updateStatus(tweet, function(err,data){
-        if (err) {console.log("Error:" + err); }
-        else {console.log("Tweeted: " + JSON.stringify(data));}
+        if (err) {
+            console.log("Error:" + err);
+            io.sockets.emit("help", parseData({text:JSON.stringify(err), created_at: new Date()}));
+        }
+        else {
+            console.log("Tweeted: " + JSON.stringify(data));
+            io.sockets.emit("help",parseData(data) );
+        }
     });
     io.sockets.emit("help",parsedTweet );
     console.log("debug tweet: " +tweet);
