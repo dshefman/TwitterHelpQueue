@@ -1,10 +1,4 @@
-
-/**
- * Module dependencies.
- Added
- 1. ntwitter - package for using Twitter API
- 2. url - used to parse out different parts of URLs
- */
+ var tweetBodyText = "needs help. #uhmultimediaHelp @UHMultimedia";
 
  var express = require('express')
  , routes = require('./routes')
@@ -34,11 +28,8 @@
   app.use(express.errorHandler());
 });
 
-//var script_url = 'http://uhtwitter-daemon.herokuapp.com';
 
-  /**
-   * Above this line are Express Defaults.
-   */
+
 createTwitter = function()
 {
   var twit = new twitter({
@@ -52,43 +43,52 @@ return twit
 }
 
 twit = createTwitter();
-  /**
-    * This demonstrates a use case where the Application itself is making all of the API calls on its
-    * own behalf.
-    */
+
   var parseData = function(tweet){
-      var now = new Date();
-      var tweetTime = new Date(tweet.created_at);
-      var minsAgo = Math.round((now.getTime() - tweetTime.getTime()) / 1000 / 60);
-      var hour24 = tweetTime.getHours();
-      if (hour24 == "0" || hour24 == 0) {hour24 = 24;}
-      var currentTimezoneOffset = -5;
-      hour24 = hour24+currentTimezoneOffset;
-      var hour = (hour24 > 12) ? hour24-12: hour24;
-      if (hour <10) {hour = "0" + hour;}
-      var ampm = (hour24 < 12) ? "am" : "pm";
-      var min = (tweetTime.getMinutes() <10 )? "0" + tweetTime.getMinutes() : tweetTime.getMinutes();
-      var dateF = hour +":"+ min + " " + ampm;
-      var endidx = tweet.text.indexOf('needs help. #uhmultimediaHelp @UHMultimedia');
+
+      var endidx = tweet.text.indexOf(tweetBodyText);
       var coreTweet = tweet.text;
+      var minsAgo = calculateMinutesAgo(tweet);
+      var dateF = formatTweetDate(tweet);
       if (endidx != -1) {
           coreTweet = tweet.text.substring(0,endidx);
       }
       console.log(tweet.text +" >>> " + dateF );
-      return {text:coreTweet, minsAgo:minsAgo, dateF:dateF}
+      return {text:coreTweet, dateF:dateF, minsAgo:minsAgo}
   };
+
+ var calculateMinutesAgo = function(tweet)
+ {
+     var now = new Date();
+     var tweetTime = new Date(tweet.created_at);
+     var minsAgo = Math.round((now.getTime() - tweetTime.getTime()) / 1000 / 60);
+     return minsAgo;
+ }
+
+ var formatTweetDate = function (tweet){
+     /*
+        Convert the tweet time which 24 hour GMT to 12 hour local  as 07:05 pm
+      */
+     var currentTimezoneOffset = -5;
+     var tweetTime = new Date(tweet.created_at);
+     var hour24 = tweetTime.getHours();
+     /* Given that I teach an evening class and I'm -5 timeszones away
+        a tweet at midnight (0), should really be 24 so that the math ends up correct
+      */
+     if (hour24 == "0" || hour24 == 0) {hour24 = 24;}
+     hour24 = hour24+currentTimezoneOffset;
+     var hour = (hour24 > 12) ? hour24-12: hour24;
+     if (hour <10) {hour = "0" + hour;}
+     var ampm = (hour24 < 12) ? "am" : "pm";
+     var min = (tweetTime.getMinutes() <10 )? "0" + tweetTime.getMinutes() : tweetTime.getMinutes();
+     var dateF = hour +":"+ min + " " + ampm;
+     return dateF;
+ }
 
 var searchTerm = "uhmultimediaHelp";
 
     app.get('/', function(req, res){
       console.log("Entering Single User Example...");
-
-  /* Be sure to include all 4 tokens.
-   * Default keys don't work. I am leaving them to make it easier to compare to screenshots found at
-   * https://github.com/drouillard/sample-ntwitter
-   * NOTE: In a real application do not embedd your keys into the source code
-   * TODO: Fill in your Application information here
-   */
 
 
    twit
@@ -122,23 +122,13 @@ var searchTerm = "uhmultimediaHelp";
  });
 
 
-/*http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
-});*/
+
 var server = app.listen(app.get('port'), function(){
     console.log("Express server listening on port " + app.get('port'));
 });
 
 
 var io = require('socket.io').listen(server);
-/*io.configure(function(){
-    io.set("transports",["xhr-polling", 'jsonp-polling']);
-    io.set("polling duration", 10);
-});*/
-
-
-//app.listen(8080)
-
 
 io.sockets.on('connection', function(socket) {
     console.log('Connected to the server');
@@ -158,9 +148,7 @@ app.post("/postTweet", function(req,res){
     var tweet = "";
     tweet += req.body.firstName + " ";
     tweet += req.body.lastName + " ";
-    tweet += "needs help. ";
-    tweet += "#uhmultimediaHelp ";
-    tweet += "@UHMultimedia ";
+    tweet += tweetBodyText;
 
     var uniqueifer = new Date().getTime();
     tweet += uniqueifer;
@@ -173,13 +161,10 @@ app.post("/postTweet", function(req,res){
         }
         else {
             console.log("Tweeted: " + JSON.stringify(data));
-            io.sockets.emit("help",parseData(data) );
+            //io.sockets.emit("help",parseData(data) );
         }
     });
     io.sockets.emit("help",parsedTweet );
     console.log("debug tweet: " +tweet);
-    //res.contentType('application/json');
-    //var data = tweet;
-    //res.header('Content-length',parsedTweet.length);
     res.send(parsedTweet);
 });
