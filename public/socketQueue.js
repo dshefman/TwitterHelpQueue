@@ -12,10 +12,6 @@ var socketQueue = function (){
         io.sockets.on('connection', function(socket) {
             console.log('Connected to the server');
             io.sockets.emit(CONNECT);
-            /*socket.on(HELP, function(msg)
-            {
-                io.sockets.emit('message', msg);
-            })*/
             socket.on('disconnect', function () {
                 console.log('User disconnected');
             });
