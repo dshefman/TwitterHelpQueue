@@ -1,5 +1,5 @@
 var ioQueue = new socketQueue();
-var socket = ioQueue.connectRemote(io, window.location.hostname);
+var socket = ioQueue.connectClient(io, window.location.hostname);
 var RETURN_KEY=13;
 
 

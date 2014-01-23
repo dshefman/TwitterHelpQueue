@@ -2,17 +2,20 @@ var socketQueue = function (){
     var io;
     var clientSocket;
 
+    var CONNECT = "connect";
+    var HELP = "help";
+
     var connect = function(server)
     {
        io = require('socket.io').listen(server);
 
         io.sockets.on('connection', function(socket) {
             console.log('Connected to the server');
-            io.sockets.emit('connect');
-            socket.on('help', function(msg)
+            io.sockets.emit(CONNECT);
+            /*socket.on(HELP, function(msg)
             {
                 io.sockets.emit('message', msg);
-            })
+            })*/
             socket.on('disconnect', function () {
                 console.log('User disconnected');
             });
@@ -42,7 +45,7 @@ var socketQueue = function (){
     }
 
     var onConnect = function(){
-          clientSocket.on('connect',function() {
+          clientSocket.on(CONNECT,function() {
               console.log('Client has connected to the server!');
           });
     }
@@ -51,7 +54,7 @@ var socketQueue = function (){
     var onHelp = function(uiList){
         this.uiList = uiList;
         var self = this;
-        clientSocket.on("help", function(msg){
+        clientSocket.on(HELP, function(msg){
             self.uiList.prepend("<li>" + msg.text +"... " + msg.dateF +" </li>");
         });
     }
@@ -65,7 +68,7 @@ var socketQueue = function (){
           broadcastHelp: broadcastHelp,
           broadcastError: broadcastError,
 
-          connectRemote: connectRemote,
+          connectClient: connectRemote,
           onConnect: onConnect,
           onHelp: onHelp
     } ;
