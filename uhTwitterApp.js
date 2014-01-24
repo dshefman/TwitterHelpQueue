@@ -1,18 +1,20 @@
- var tweetBodyText = "needs help. #uhmultimediaHelp @UHMultimedia";
-
- var express = require('express')
- , routes = require('./routes')
- , http = require('http')
- , path = require('path')
- , twitter = require('ntwitter')
- , url = require('url')
- , socketio = require('socket.io');
+var tweetBodyText = "needs help. #uhmultimediaHelp @UHMultimedia";
+var searchTerm = "uhmultimediaHelp";
 
 
+var express = require('express')
+, routes = require('./routes')
+, http = require('http')
+, path = require('path')
+, twitter = require('ntwitter')
+, url = require('url')
+, socketio = require('socket.io');
 
- var app = express();
 
- app.configure(function(){
+
+var app = express();
+
+app.configure(function(){
   app.set('port', process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
@@ -31,56 +33,33 @@
 });
 
 
-
-createTwitter = function()
-{
-  var twit = new twitter({
-      consumer_key: '8gBrIpePkV04FhZTxDMGg',
-      consumer_secret: 'J6F7rjxtHQbPZbLC8L1j6uZ3K7pT3SguU8SVm3lPar0',
-      access_token_key: '363280840-P8zM1laadrBkCicpHLvn7Q1R9BU5atu87yy76pTq',
-      access_token_secret: 'xGRgol6UgJRJthG5pQkGvVfRGcDezECfg4bGCS5Vk8s'
-  });
-
-return twit
+var twitterCredentials = require("./twitterAPICredentials");
+var twitterAPICredentials = {
+    consumer_key: twitterCredentials.CONSUMER_KEY,
+    consumer_secret: twitterCredentials.CONSUMER_SECRET,
+    access_token_key: twitterCredentials.ACCESS_TOKEN_KEY,
+    access_token_secret: twitterCredentials.ACCESS_TOKEN_SECRET
 }
+var twit = new twitter(twitterAPICredentials);
 
-twit = createTwitter();
 var helpManager =  require('./twitterQueueMgmt');
 
 
-
-var searchTerm = "uhmultimediaHelp";
-
-    app.get('/', function(req, res){
-      console.log("Entering Single User Example...");
-
-
+app.get('/', function(req, res){
+   //When app starts, do a twitter search to populate the list
    twit
        .search(searchTerm,{},
        function (err, data) {
            if(err){
                console.log("Verification failed : " + err);
+               res.render("single",{tweets:[helpManager.addTweet("Error " + JSON.stringify(err))]}) //Render blank
            }
-           console.log("Search Data Returned....");
            var tweets = data.statuses;
-           var tweet;
-           var len = tweets.length;
-           var displayTweets = [];
-           for  (var i =0 ; i<len; i++){
-               tweet = tweets[i];
-                parsedTweet = helpManager.addTweet(tweet);
-               if (parsedTweet.minsAgo < 300)
-               {
-                displayTweets.push(parsedTweet);
-               }
-                 //queueList += "<li>" +  tweet.text +"..."+ tweet.created_at +"</li>"
-           }
+           var parsedTweets = helpManager.addTweets(tweets);
 
            var view_data = {
-               "tweets" : displayTweets
+               "tweets" : parsedTweets
            };
-           //res.locals.script_url = script_url;
-           console.log("Exiting Controller.");
            res.render("single", view_data);
        });
  });
@@ -92,8 +71,8 @@ var server = app.listen(app.get('port'), function(){
 });
 
 
- var ioQueue = require('./public/socketQueue');
- ioQueue.connectServer(server);
+var ioQueue = require('./public/socketQueue');
+ioQueue.connectServer(server);
 
 
 
@@ -105,13 +84,25 @@ app.post("/postTweet", function(req,res){
     var tweetUIObj = helpManager.addTweetFromName(fname,lname);
     twit.updateStatus(tweetUIObj.fullString, function(err,data){
         if (err) {
-            ioQueue.broadcastError(err);
+            ioQueue.broadcastError(err,helpManager);
         }
         else {
             console.log("Tweeted: " + JSON.stringify(data));
-            //io.sockets.emit("help",parseData(data) );
+            //Search again after status update, to see if there are any updates from Twitter outside of app
+            twit
+                .search(searchTerm,{},
+                function (err, data) {
+                    if(err){
+                        return; //Don't refresh if it doesn't happen here
+                    }
+                    var tweets = data.statuses;
+                    var parsedTweets = helpManager.addTweets(tweets);
+                    parsedTweets.unshift(tweetUIObj.uiTweet) // The current object doesn't get added to the search results immediately, so we force it in here
+                    ioQueue.broadcastRefresh(parsedTweets)
+                });
         }
     });
+    //Broadcast immediately, then refresh once the tweet gets processed
     ioQueue.broadcastHelp(tweetUIObj.uiTweet);
     res.send(tweetUIObj.uiTweet);
 });

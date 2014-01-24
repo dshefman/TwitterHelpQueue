@@ -4,8 +4,9 @@ var socketQueue = function (){
 
     var CONNECT = "connect";
     var HELP = "help";
+    var REFRESH = "refresh"
 
-    var connect = function(server)
+    var connectServer = function(server)
     {
        io = require('socket.io').listen(server);
 
@@ -22,16 +23,20 @@ var socketQueue = function (){
 
     var broadcastHelp = function(uiTweet){
         log("debug tweeet > " + uiTweet)
-        io.sockets.emit("help", uiTweet);
+        io.sockets.emit(HELP, uiTweet);
+    }
+
+    var broadcastRefresh = function(uiTweets){
+        io.sockets.emit(REFRESH, uiTweets);
     }
 
     var broadcastError = function(error, helpManager){
-       log("ERROR > " + err)
+       log("ERROR > " + error)
        uiTweet = helpManager.addTweet("Error " + JSON.stringify(error));
        broadcastHelp(uiTweet);
     }
 
-    var connectRemote = function(localIO, hostname){
+    var connectClient = function(localIO, hostname){
           clientSocket = localIO.connect(hostname,{
               'reconnect': true,
               'reconnection delay': 500,
@@ -51,8 +56,30 @@ var socketQueue = function (){
         this.uiList = uiList;
         var self = this;
         clientSocket.on(HELP, function(msg){
-            self.uiList.prepend("<li>" + msg.text +"... " + msg.dateF +" </li>");
+            self.uiList.prepend(generateListHTML(msg.text, msg.dateF));
         });
+    }
+
+    var onRefresh = function(uiList){
+        this.uiList = uiList;
+        var self = this;
+        clientSocket.on(REFRESH, function(msg){
+            var html = ""
+            var msgList = msg;
+            var len = msgList.length;
+            for (var i= 0; i< len; i++) {
+                //log("onRefresh :" + JSON.stringify(msgList[i]));
+                html += generateListHTML(msgList[i].text, msgList[i].dateF);
+            }
+
+            self.uiList.html(html);
+        });
+    }
+
+    var generateListHTML = function(text, dateF)
+    {
+        return "<li>" + text +"... " + dateF +" </li>"
+
     }
 
     var log = function(msg){
@@ -60,13 +87,15 @@ var socketQueue = function (){
     }
 
     return {
-          connectServer: connect,
+          connectServer: connectServer,
           broadcastHelp: broadcastHelp,
           broadcastError: broadcastError,
+          broadcastRefresh: broadcastRefresh,
 
-          connectClient: connectRemote,
+          connectClient: connectClient,
           onConnect: onConnect,
-          onHelp: onHelp
+          onHelp: onHelp,
+          onRefresh: onRefresh
     } ;
 }
 

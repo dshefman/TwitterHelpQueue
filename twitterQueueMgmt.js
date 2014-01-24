@@ -2,6 +2,7 @@ var twitterQueueMgmt = function() {
     var queue = []
     var currentTimezoneOffset = -5;
     var treatNegativeHoursAsNextDay = true;
+    var tweetExpirationDurationInMinutes = 300;
 
     var tweetBodyText = " needs help. #uhmultimediaHelp @UHMultimedia";
 
@@ -21,15 +22,17 @@ var twitterQueueMgmt = function() {
             dateF: formatTweetDate(tweetObj.created_at),
             minsAgo:calculateMinutesAgo(tweetObj.created_at)};
 
-        log(rtn.dateF + " >>> " + rtn.text);
+        //log(rtn.dateF + " >>> " + rtn.text);
 
         return rtn;
     }
 
     var parseRealTweet = function(tweetObj){
         var rtn = "";
-        rtn += tweetObj.user.name;
-        rtn += " >> " + tweetObj.text;
+        if (tweetObj.hasOwnProperty("user")){
+            rtn += tweetObj.user.name + " >> ";
+        }
+        rtn += tweetObj.text;
         return rtn;
     }
 
@@ -67,8 +70,27 @@ var twitterQueueMgmt = function() {
            tweetObj = {text:tweet, created_at: new Date()}
         }
         var rtn = parseData(tweetObj)
-        queue.push(rtn);
+        if (rtn.minsAgo <= tweetExpirationDurationInMinutes)
+        {
+            queue.push(rtn);
+        }
+        //log("addTweet:>" + JSON.stringify(rtn) +"<")
         return rtn
+    }
+
+    var addTweets = function(tweets){
+        resetQueue();
+        var len = tweets.length;
+        var tweet;
+        for  (var i =0 ; i<len; i++){
+            tweet = tweets[i];
+            addTweet(tweet);
+        }
+        return queue;
+    }
+
+    var resetQueue = function(){
+        queue = [];
     }
 
     var addTweetFromName = function (firstName,lastName){
@@ -89,6 +111,10 @@ var twitterQueueMgmt = function() {
         currentTimezoneOffset = val;
     }
 
+    var setTweetExpirationInMinutes = function(val){
+        tweetExpirationDurationInMinutes = val;
+    }
+
     var log = function(msg){
         console.log(msg);
     }
@@ -96,8 +122,10 @@ var twitterQueueMgmt = function() {
     return {
         queue: queue,
         addTweet:addTweet,
+        addTweets:addTweets,
         addTweetFromName:addTweetFromName,
-        setTimezoneOffset:setCurrentTimezoneFromGMT
+        setTimezoneOffset:setCurrentTimezoneFromGMT,
+        setMinutesToTweetExpiration: setTweetExpirationInMinutes
     }
 };
 

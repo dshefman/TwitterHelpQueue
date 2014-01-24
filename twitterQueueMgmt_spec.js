@@ -20,9 +20,9 @@ describe("TwitterQueue", function(){
     })
 
     it ("can add a tweet", function(){
-        mgmt.addTweet("help 1")
+        mgmt.addTweet({user:{name:"Drew Shefman"}, text:"help 1", created_at: new Date()})
         expect(mgmt.queue.length).toBe(1);
-        expect(mgmt.queue[0].text).toEqual("help 1")
+        expect(mgmt.queue[0].text).toEqual("Drew Shefman >> help 1")
     })
 
     it ("can add a tweet from a name", function(){
@@ -68,5 +68,35 @@ describe("TwitterQueue", function(){
         expect(obj.dateF).toMatch(/\d+:\d+ [ap]m/); //01:30 pm
         expect(obj.dateF.length).toEqual(8); //should have leading zeros
         expect(obj.dateF).toEqual("08:30 am");
+    })
+
+    it ("Duration expired at date", function(){
+        var obj = mgmt.addTweet({text:"Drew Shefman", created_at: new Date("Jan 23 2014 13:30")});
+        expect(mgmt.queue.length).toBe(0);
+
+    })
+
+    it ("Duration expired at 1 mins, it is 1 min", function(){
+        mgmt.setMinutesToTweetExpiration(1);
+        var obj = mgmt.addTweet({text:"Drew Shefman", created_at: new Date(new Date()-(1*60*1000))});
+        expect(mgmt.queue.length).toBe(1);
+
+    })
+
+    it ("Duration expired at 1 mins, it is 2 min", function(){
+        mgmt.setMinutesToTweetExpiration(1);
+        var obj = mgmt.addTweet({text:"Drew Shefman", created_at: new Date(new Date()-(2*60*1000))});
+        expect(mgmt.queue.length).toBe(0);
+
+    })
+
+    it ("resets queue if adding multiples", function(){
+        mgmt.setMinutesToTweetExpiration(1);
+        var obj = mgmt.addTweet({text:"Drew Shefman", created_at: new Date()});
+        expect(mgmt.queue.length).toBe(1);
+        mgmt.addTweets([{text:"Andrew Shefman", created_at: new Date()}])
+        expect(mgmt.queue.length).toBe(1);
+
+
     })
 })
