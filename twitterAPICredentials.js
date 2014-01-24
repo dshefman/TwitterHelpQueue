@@ -5,6 +5,6 @@ var twitterAPICredentials = function(){
         ACCESS_TOKEN_KEY: '363280840-P8zM1laadrBkCicpHLvn7Q1R9BU5atu87yy76pTq',
         ACCESS_TOKEN_SECRET: 'xGRgol6UgJRJthG5pQkGvVfRGcDezECfg4bGCS5Vk8s'
     }
-}
+};
 
 module.exports = new twitterAPICredentials();

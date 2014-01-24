@@ -1,5 +1,5 @@
 var twitterQueueMgmt = function() {
-    var queue = []
+    var queue = [];
     var currentTimezoneOffset = -5;
     var treatNegativeHoursAsNextDay = true;
     var tweetExpirationDurationInMinutes = 300;
@@ -9,14 +9,13 @@ var twitterQueueMgmt = function() {
     var parseData = function(tweetObj){
 
         var coreText = tweetObj.text;
-        var endIdx = coreText.indexOf(tweetBodyText)
-        var isSystemGeneratedTweet = endIdx != -1
+        var endIdx = coreText.indexOf(tweetBodyText);
+        var isSystemGeneratedTweet = endIdx != -1;
         if (isSystemGeneratedTweet) {
-            coreText = coreText.substring(0,endIdx)
+            coreText = coreText.substring(0,endIdx);
         }
-        else
-        {
-           coreText = parseRealTweet(tweetObj)
+        else {
+           coreText = parseRealTweet(tweetObj);
         }
         var rtn = {text:coreText,
             dateF: formatTweetDate(tweetObj.created_at),
@@ -25,7 +24,7 @@ var twitterQueueMgmt = function() {
         //log(rtn.dateF + " >>> " + rtn.text);
 
         return rtn;
-    }
+    };
 
     var parseRealTweet = function(tweetObj){
         var rtn = "";
@@ -34,7 +33,7 @@ var twitterQueueMgmt = function() {
         }
         rtn += tweetObj.text;
         return rtn;
-    }
+    };
 
     var formatTweetDate = function (created_at){
         /*
@@ -53,7 +52,7 @@ var twitterQueueMgmt = function() {
         var min = (tweetTime.getMinutes() <10 )? "0" + tweetTime.getMinutes() : tweetTime.getMinutes();
         var dateF = hour +":"+ min + " " + ampm;
         return dateF;
-    }
+    };
 
     var calculateMinutesAgo = function(created_at)
     {
@@ -61,22 +60,22 @@ var twitterQueueMgmt = function() {
         var tweetTime = new Date(created_at);
         var minsAgo = Math.round((now.getTime() - tweetTime.getTime()) / 1000 / 60);
         return minsAgo;
-    }
+    };
 
     var addTweet = function(tweet)
     {
-        tweetObj = tweet
+        var tweetObj = tweet;
         if (typeof tweet == "string"){
            tweetObj = {text:tweet, created_at: new Date()}
         }
-        var rtn = parseData(tweetObj)
+        var rtn = parseData(tweetObj);
         if (rtn.minsAgo <= tweetExpirationDurationInMinutes)
         {
             queue.push(rtn);
         }
         //log("addTweet:>" + JSON.stringify(rtn) +"<")
         return rtn
-    }
+    };
 
     var addTweets = function(tweets){
         resetQueue();
@@ -87,11 +86,11 @@ var twitterQueueMgmt = function() {
             addTweet(tweet);
         }
         return queue;
-    }
+    };
 
     var resetQueue = function(){
         queue = [];
-    }
+    };
 
     var addTweetFromName = function (firstName,lastName){
         var tweet = "";
@@ -105,19 +104,19 @@ var twitterQueueMgmt = function() {
         return {fullString:tweet,
                 uiTweet: addTweet(tweet)};
 
-    }
+    };
 
     var setCurrentTimezoneFromGMT = function(val){
         currentTimezoneOffset = val;
-    }
+    };
 
     var setTweetExpirationInMinutes = function(val){
         tweetExpirationDurationInMinutes = val;
-    }
+    };
 
     var log = function(msg){
         console.log(msg);
-    }
+    };
 
     return {
         queue: queue,
@@ -126,7 +125,7 @@ var twitterQueueMgmt = function() {
         addTweetFromName:addTweetFromName,
         setTimezoneOffset:setCurrentTimezoneFromGMT,
         setMinutesToTweetExpiration: setTweetExpirationInMinutes
-    }
+    };
 };
 
 try

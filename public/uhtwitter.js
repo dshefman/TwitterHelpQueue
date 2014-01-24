@@ -6,7 +6,7 @@ var RETURN_KEY=13;
 var resetInputs = function(){
     $('#firstName').val("firstName");
     $('#lastName').val("lastName");
-}
+};
 
 
 $(document).ready(function(){

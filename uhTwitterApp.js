@@ -1,4 +1,3 @@
-var tweetBodyText = "needs help. #uhmultimediaHelp @UHMultimedia";
 var searchTerm = "uhmultimediaHelp";
 
 
@@ -39,7 +38,7 @@ var twitterAPICredentials = {
     consumer_secret: twitterCredentials.CONSUMER_SECRET,
     access_token_key: twitterCredentials.ACCESS_TOKEN_KEY,
     access_token_secret: twitterCredentials.ACCESS_TOKEN_SECRET
-}
+};
 var twit = new twitter(twitterAPICredentials);
 
 var helpManager =  require('./twitterQueueMgmt');
@@ -52,7 +51,7 @@ app.get('/', function(req, res){
        function (err, data) {
            if(err){
                console.log("Verification failed : " + err);
-               res.render("single",{tweets:[helpManager.addTweet("Error " + JSON.stringify(err))]}) //Render blank
+               res.render("single",{tweets:[helpManager.addTweet("Error " + JSON.stringify(err))]}); //Render blank
            }
            var tweets = data.statuses;
            var parsedTweets = helpManager.addTweets(tweets);
@@ -97,7 +96,7 @@ app.post("/postTweet", function(req,res){
                     }
                     var tweets = data.statuses;
                     var parsedTweets = helpManager.addTweets(tweets);
-                    parsedTweets.unshift(tweetUIObj.uiTweet) // The current object doesn't get added to the search results immediately, so we force it in here
+                    parsedTweets.unshift(tweetUIObj.uiTweet); // The current object doesn't get added to the search results immediately, so we force it in here
                     ioQueue.broadcastRefresh(parsedTweets)
                 });
         }

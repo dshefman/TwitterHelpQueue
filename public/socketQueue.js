@@ -4,7 +4,7 @@ var socketQueue = function (){
 
     var CONNECT = "connect";
     var HELP = "help";
-    var REFRESH = "refresh"
+    var REFRESH = "refresh";
 
     var connectServer = function(server)
     {
@@ -17,24 +17,24 @@ var socketQueue = function (){
                 console.log('User disconnected');
             });
         });
-    }
+    };
 
 
 
     var broadcastHelp = function(uiTweet){
-        log("debug tweeet > " + uiTweet)
+        log("debug tweet > " + uiTweet);
         io.sockets.emit(HELP, uiTweet);
-    }
+    };
 
     var broadcastRefresh = function(uiTweets){
         io.sockets.emit(REFRESH, uiTweets);
-    }
+    };
 
     var broadcastError = function(error, helpManager){
-       log("ERROR > " + error)
-       uiTweet = helpManager.addTweet("Error " + JSON.stringify(error));
+       log("ERROR > " + error);
+       var uiTweet = helpManager.addTweet("Error " + JSON.stringify(error));
        broadcastHelp(uiTweet);
-    }
+    };
 
     var connectClient = function(localIO, hostname){
           clientSocket = localIO.connect(hostname,{
@@ -43,13 +43,13 @@ var socketQueue = function (){
               'max reconnection attempts': 10
           });
         return clientSocket;
-    }
+    };
 
     var onConnect = function(){
           clientSocket.on(CONNECT,function() {
               console.log('Client has connected to the server!');
           });
-    }
+    };
 
     var uiList;
     var onHelp = function(uiList){
@@ -58,13 +58,13 @@ var socketQueue = function (){
         clientSocket.on(HELP, function(msg){
             self.uiList.prepend(generateListHTML(msg.text, msg.dateF));
         });
-    }
+    };
 
     var onRefresh = function(uiList){
         this.uiList = uiList;
         var self = this;
         clientSocket.on(REFRESH, function(msg){
-            var html = ""
+            var html = "";
             var msgList = msg;
             var len = msgList.length;
             for (var i= 0; i< len; i++) {
@@ -74,17 +74,17 @@ var socketQueue = function (){
 
             self.uiList.html(html);
         });
-    }
+    };
 
     var generateListHTML = function(text, dateF)
     {
         return "<li>" + text +"... " + dateF +" </li>"
 
-    }
+    };
 
     var log = function(msg){
         console.log(msg);
-    }
+    };
 
     return {
           connectServer: connectServer,
@@ -96,8 +96,8 @@ var socketQueue = function (){
           onConnect: onConnect,
           onHelp: onHelp,
           onRefresh: onRefresh
-    } ;
-}
+    };
+};
 
 try
 {
