@@ -1,0 +1,18 @@
+doctype html
+html
+    head
+        title = "I Need Help for Comm3323"
+        script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js')
+        script(src='http://uhmultimedia-twitter.heroku.com/socket.io/socket.io.js')
+        script(src='/socketQueue.js')
+        script(src='/uhtwitter.js')
+
+    body
+        h1	COMM3323 Help Queue
+        form(action='/postTweet', method='post')
+              input.field(id='firstName' name='firstName', value='firstName')
+              input.field(id='lastName' name='lastName', value='lastName')
+              input.send(type='button', id="send", value='I need help')
+        ol(id='tweetlist')
+         each tweet in tweets
+          li #{tweet.text} ... #{tweet.dateF}
