@@ -1,10 +1,12 @@
 var twitterQueueMgmt = function() {
     var queue = [];
+    var beenHelpedQueue = [];
     var currentTimezoneOffset = -5;
     var treatNegativeHoursAsNextDay = true;
     var tweetExpirationDurationInMinutes = 300;
 
     var tweetBodyText = " needs help. #uhmultimediaHelp @UHMultimedia";
+    var beenHelpedBodyText = " #uhmultimediaBeenHelped @UHMultimedia";
 
     var parseData = function(tweetObj){
 
@@ -17,6 +19,24 @@ var twitterQueueMgmt = function() {
         else {
            coreText = parseRealTweet(tweetObj);
         }
+        var rtn = {text:coreText,
+            dateF: formatTweetDate(tweetObj.created_at),
+            minsAgo:calculateMinutesAgo(tweetObj.created_at)};
+
+        //log(rtn.dateF + " >>> " + rtn.text);
+
+        return rtn;
+    };
+
+    var parseHelpedData = function(tweetObj){
+
+        var coreText = tweetObj.text;
+        var endIdx = coreText.indexOf(tweetBodyText);
+        var isSystemGeneratedTweet = endIdx != -1;
+        if (isSystemGeneratedTweet) {
+            coreText = coreText.substring(0,endIdx);
+        }
+
         var rtn = {text:coreText,
             dateF: formatTweetDate(tweetObj.created_at),
             minsAgo:calculateMinutesAgo(tweetObj.created_at)};
@@ -92,6 +112,29 @@ var twitterQueueMgmt = function() {
         queue = [];
     };
 
+    var addHelpedTweet = function(tweet)
+    {
+        var tweetObj = tweet;
+        if (typeof tweet == "string"){
+            tweetObj = {text:tweet, created_at: new Date()}
+        }
+        var rtn = parseHelpedData(tweetObj);
+        beenHelpedQueue.push(rtn);
+        //log("addTweet:>" + JSON.stringify(rtn) +"<")
+        return rtn
+    }
+
+    var addHelpedTweets = function(tweets){
+        beenHelpedQueue = [];
+        var len = tweets.length;
+        var tweet;
+        for  (var i =0 ; i<len; i++){
+            tweet = tweets[i];
+            addTweet(tweet);
+        }
+        return beenHelpedQueue;
+    };
+
     var addTweetFromName = function (firstName,lastName){
         var tweet = "";
         tweet += firstName + " ";
@@ -103,6 +146,20 @@ var twitterQueueMgmt = function() {
 
         return {fullString:tweet,
                 uiTweet: addTweet(tweet)};
+
+    };
+
+    var addTweetHelped = function (expert,novice){
+        var tweet = "";
+        tweet += expert + " helped ";
+        tweet += novice  ;
+        tweet += beenHelpedBodyText;
+
+        var uniqueifer = new Date().getTime();
+        tweet += " ~" +uniqueifer;
+
+        return {fullString:tweet,
+            uiTweet: addHelpedTweet(tweet)};
 
     };
 
@@ -123,6 +180,9 @@ var twitterQueueMgmt = function() {
         addTweet:addTweet,
         addTweets:addTweets,
         addTweetFromName:addTweetFromName,
+        addHelpedTweets: addHelpedTweets,
+        addHelpedTweet:  addHelpedTweet,
+        addTweetHelped: addTweetHelped,
         setTimezoneOffset:setCurrentTimezoneFromGMT,
         setMinutesToTweetExpiration: setTweetExpirationInMinutes
     };

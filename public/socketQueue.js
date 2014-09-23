@@ -5,6 +5,8 @@ var socketQueue = function (){
     var CONNECT = "connect";
     var HELP = "help";
     var REFRESH = "refresh";
+    var BEEN_HELPED = "beenHelped";
+    var BEEN_HELPED_REFRESH = "refreshBeenHelped"
 
     var connectServer = function(server)
     {
@@ -28,6 +30,15 @@ var socketQueue = function (){
 
     var broadcastRefresh = function(uiTweets){
         io.sockets.emit(REFRESH, uiTweets);
+    };
+
+    var broadcastBeenHelped = function(uiTweet){
+        log("debug tweet > " + uiTweet);
+        io.sockets.emit(BEEN_HELPED, uiTweet);
+    };
+
+    var broadcastRefreshBeenHelped = function(uiTweets){
+        io.sockets.emit(BEEN_HELPED_REFRESH, uiTweets);
     };
 
     var broadcastError = function(error, helpManager){
@@ -76,6 +87,30 @@ var socketQueue = function (){
         });
     };
 
+    var onBeenHelped = function(uiList){
+        this.uiList = uiList;
+        var self = this;
+        clientSocket.on(BEEN_HELPED, function(msg){
+            self.uiList.prepend(generateListHTML(msg.text, msg.dateF));
+        });
+    };
+
+    var onBeenHelpedRefresh = function(uiList){
+        this.uiList = uiList;
+        var self = this;
+        clientSocket.on(BEEN_HELPED_REFRESH, function(msg){
+            var html = "";
+            var msgList = msg;
+            var len = msgList.length;
+            for (var i= 0; i< len; i++) {
+                //log("onRefresh :" + JSON.stringify(msgList[i]));
+                html += generateListHTML(msgList[i].text, msgList[i].dateF);
+            }
+
+            self.uiList.html(html);
+        });
+    };
+
     var generateListHTML = function(text, dateF)
     {
         return "<li>" + text +"... " + dateF +" </li>"
@@ -92,10 +127,15 @@ var socketQueue = function (){
           broadcastError: broadcastError,
           broadcastRefresh: broadcastRefresh,
 
+          broadcastBeenHelped: broadcastBeenHelped,
+          broadcastRefreshBeenHelped: broadcastRefreshBeenHelped,
+
           connectClient: connectClient,
           onConnect: onConnect,
           onHelp: onHelp,
-          onRefresh: onRefresh
+          onRefresh: onRefresh,
+          onBeenHelped: onBeenHelped,
+          onBeenHelpedRefresh: onBeenHelpedRefresh
     };
 };
 

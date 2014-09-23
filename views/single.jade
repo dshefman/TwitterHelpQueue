@@ -16,3 +16,11 @@ html
         ol(id='tweetlist')
          each tweet in tweets
           li #{tweet.text} ... #{tweet.dateF}
+        h1 BEEN HELPED
+        form(action='/postBeenHelped', method='post')
+            input.field(id='expertName' name='expertName', value="Helper's full name")
+            = ' helped '
+            input.field(id='noviceName' name='noviceName', value='Your full name')
+            input.send(type='button', id="helpedBtn", value='Thanks for the help')
+        ol(id='helpedList')
+

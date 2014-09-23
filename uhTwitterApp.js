@@ -1,4 +1,5 @@
 var searchTerm = "uhmultimediaHelp";
+var beenHelped = "uhmultimediaBeenHelped"
 
 
 var express = require('express')
@@ -61,6 +62,8 @@ app.get('/', function(req, res){
            };
            res.render("single", view_data);
        });
+
+
  });
 
 
@@ -103,5 +106,36 @@ app.post("/postTweet", function(req,res){
     });
     //Broadcast immediately, then refresh once the tweet gets processed
     ioQueue.broadcastHelp(tweetUIObj.uiTweet);
+    res.send(tweetUIObj.uiTweet);
+});
+
+app.post("/postBeenHelped", function(req,res){
+    var expert = req.body.expertName;
+    var novice = req.body.noviceName;
+
+
+    var tweetUIObj = helpManager.addTweetHelped(expert,novice);
+    twit.updateStatus(tweetUIObj.fullString, function(err,data){
+        if (err) {
+            ioQueue.broadcastError(err,helpManager);
+        }
+        else {
+            console.log("Tweeted: " + JSON.stringify(data));
+            //Search again after status update, to see if there are any updates from Twitter outside of app
+            twit
+                .search(beenHelped,{},
+                function (err, data) {
+                    if(err){
+                        return; //Don't refresh if it doesn't happen here
+                    }
+                    var tweets = data.statuses;
+                    var parsedTweets = helpManager.addHelpedTweets(tweets);
+                    parsedTweets.unshift(tweetUIObj.uiTweet); // The current object doesn't get added to the search results immediately, so we force it in here
+                    ioQueue.broadcastRefreshBeenHelped(parsedTweets)
+                });
+        }
+    });
+    //Broadcast immediately, then refresh once the tweet gets processed
+    ioQueue.broadcastBeenHelped(tweetUIObj.uiTweet);
     res.send(tweetUIObj.uiTweet);
 });
